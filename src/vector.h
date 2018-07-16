@@ -27,8 +27,8 @@ struct VECTOR {
 
 #define VECTOR_ERR_FULL -1
 
-typedef void* (*vector_search_cb)( size_t* idx, void* parent, void* iter, void* arg );
-typedef BOOL (*vector_delete_cb)( size_t* idx, void* parent, void* iter, void* arg );
+typedef void* (*vector_iter_cb)( size_t idx, void* iter, void* arg );
+typedef BOOL (*vector_rem_cb)( size_t idx, void* iter, void* arg );
 typedef VECTOR_SORT_ORDER (*vector_sorter_cb)( void* a, void* b );
 
 #define vector_new( v ) \
@@ -59,20 +59,20 @@ void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value );
 void* vector_get( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar_value( const struct VECTOR* v, int32_t value );
-size_t vector_remove_cb( struct VECTOR* v, vector_delete_cb callback, void* arg );
+size_t vector_remove_cb( struct VECTOR* v, vector_rem_cb callback, void* arg );
 void vector_remove( struct VECTOR* v, size_t index );
 size_t vector_remove_all( struct VECTOR* v );
 void vector_remove_scalar( struct VECTOR* v, size_t index );
 size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value );
 size_t vector_count( const struct VECTOR* v );
 void vector_lock( struct VECTOR* v, BOOL lock );
-void* vector_iterate( struct VECTOR* v, vector_search_cb callback, void* arg );
-void* vector_iterate_nolock(
-   struct VECTOR* v, vector_search_cb callback, void* parent, void* arg
-);
-void* vector_iterate_r( struct VECTOR* v, vector_search_cb callback, void* arg );
+void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg );
+/* void* vector_iterate_nolock(
+   struct VECTOR* v, vector_cb callback, void* parent, void* arg
+); */
+void* vector_iterate_r( struct VECTOR* v, vector_iter_cb callback, void* arg );
 struct VECTOR* vector_iterate_v(
-   struct VECTOR* v, vector_search_cb callback, void* parent, void* arg
+   struct VECTOR* v, vector_iter_cb callback, void* arg
 );
 void vector_sort_cb( struct VECTOR* v, vector_sorter_cb );
 BOOL vector_is_valid( const struct VECTOR* v );
