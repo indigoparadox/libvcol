@@ -348,6 +348,10 @@ cleanup:
    return;
 }
 
+/**
+ * \brief   Get the item stored at index in a vector. This does NOT lock the
+ *          given vector.
+ */
 void* vector_get( const struct VECTOR* v, size_t index ) {
    void* retptr = NULL;
 
@@ -366,6 +370,10 @@ cleanup:
    return retptr;
 }
 
+/**
+ * \brief   Get the number stored at index in a vector. This does NOT lock the
+ *          given vector.
+ */
 int32_t vector_get_scalar( const struct VECTOR* v, size_t index ) {
    int32_t retval = -1;
 
@@ -408,11 +416,18 @@ cleanup:
    return retval;
 }
 
-/* Use a callback to delete items. The callback frees the item or decreases   *
- * its refcount as applicable.                                                */
-size_t vector_remove_cb( struct VECTOR* v, vector_delete_cb callback, void* arg ) {
+/**
+ * \brief   Use a callback to delete items. The callback frees the item or
+ *          decreases its refcount as applicable.
+ * \param   dealloc If TRUE, then this function should deallocate each item. If
+ *          FALSE, then the callback will have to deallocate the item.
+ */
+size_t vector_remove_cb(
+   struct VECTOR* v, vector_rem_cb callback, void* arg
+) {
    size_t i, j;
    size_t removed = 0;
+   BOOL callback_ret = FALSE;
 
    /* FIXME: Delete dynamic arrays and reset when empty. */
 
@@ -427,15 +442,18 @@ size_t vector_remove_cb( struct VECTOR* v, vector_delete_cb callback, void* arg 
       /* The delete callback should call the object-specific free() function, *
        * which decreases its refcount naturally. So there's no need to do it  *
        * manually here.                                                       */
-      if( NULL == callback || FALSE != callback( NULL, v, v->data[i], arg ) ) {
-         removed++;
-         for( j = i ; v->count - 1 > j ; j++ ) {
-            v->data[j] = v->data[j + 1];
-            v->data[j + 1] = NULL;
-         }
-         i--;
-         v->count--;
+      callback_ret = callback( i, v->data[i], arg );
+      if( !callback_ret ) {
+         continue;
       }
+
+      removed++;
+      for( j = i ; v->count - 1 > j ; j++ ) {
+         v->data[j] = v->data[j + 1];
+         v->data[j + 1] = NULL;
+      }
+      i--;
+      v->count--;
    }
 
 #ifdef DEBUG
@@ -562,8 +580,6 @@ void vector_lock( struct VECTOR* v, BOOL lock ) {
    #endif /* USE_THREADS */
 }
 
-#if 0
-
 /** \brief Iterate through the given vector with the given callback.
  * \param[in] v         The vector through which to iterate.
  * \param[in] callback  The callback to run on each item.
@@ -571,54 +587,33 @@ void vector_lock( struct VECTOR* v, BOOL lock ) {
  * \return If one of the callbacks returns an item, the iteration loop will
  *         break and return this item. Otherwise, NULL will be returned.
  */
-void* vector_iterate( struct VECTOR* v, vector_search_cb callback, void* arg ) {
-   void* cb_return = NULL;
+void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
+   void* cb_return = NULL,
+      * current_iter = NULL;
+   size_t i = 0,
+      v_count = 0;
+   BOOL ok = FALSE;
 
-   scaffold_check_null( v );
-   scaffold_assert( vector_is_valid( v ) );
-   /* TODO: This can work for scalars too, can't it? */
-   scaffold_assert( FALSE == v->scalar );
+   if( NULL == v || !vector_is_valid( v ) || TRUE == v->scalar ) {
+      goto cleanup;
+   }
 
    vector_lock( v, TRUE );
-   cb_return = vector_iterate_nolock( v, callback, v, arg );
-   vector_lock( v, FALSE );
-
-cleanup:
-   return cb_return;
-}
-
-void* vector_iterate_nolock(
-   struct VECTOR* v, vector_search_cb callback, void* parent, void* arg
-) {
-   void* cb_return = NULL;
-   void* current_iter = NULL;
-   size_t i;
-   struct CONTAINER_IDX idx = { 0 };
-   size_t v_count;
-
-   scaffold_check_null( v );
-   scaffold_assert( vector_is_valid( v ) );
-   /* TODO: This can work for scalars too, can't it? */
-   scaffold_assert( FALSE == v->scalar );
-
-   idx.type = CONTAINER_IDX_NUMBER;
-
-   /* If a parent wasn't explicitly provided, use the vector, itself. */
-   if( NULL == parent ) {
-      parent = v;
-   }
+   ok = TRUE;
 
    v_count = vector_count( v );
    for( i = 0 ; v_count > i ; i++ ) {
       current_iter = vector_get( v, i );
-      idx = i;
-      cb_return = callback( &idx, parent, current_iter, arg );
+      cb_return = callback( i, current_iter, arg );
       if( NULL != cb_return ) {
          break;
       }
    }
 
 cleanup:
+   if( TRUE == ok ) {
+      vector_lock( v, FALSE );
+   }
    return cb_return;
 }
 
@@ -629,72 +624,66 @@ cleanup:
  * \return If one of the callbacks returns an item, the iteration loop will
  *         break and return this item. Otherwise, NULL will be returned.
  */
-void* vector_iterate_r( struct VECTOR* v, vector_search_cb callback, void* arg ) {
+void* vector_iterate_r( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
    void* cb_return = NULL;
    void* current_iter = NULL;
-   size_t i;
-   struct CONTAINER_IDX idx = { 0 };
+   size_t i = 0,
+      v_count = 0;
+   BOOL ok = FALSE;
 
-   if( NULL == v ) {
+   if( NULL == v || !vector_is_valid( v ) || TRUE == v->scalar ) {
       goto cleanup;
    }
 
-   idx.type = CONTAINER_IDX_NUMBER;
-
    vector_lock( v, TRUE );
-   for( i = vector_count( v ) ; 0 < i ; i-- ) {
+   ok = TRUE;
+
+   v_count = vector_count( v );
+   for( i = v_count ; 0 < i ; i-- ) {
       current_iter = vector_get( v, i - 1 );
-      idx.value.index = i - 1;
-      cb_return = callback( &idx, v, current_iter, arg );
+      cb_return = callback( i, current_iter, arg );
       if( NULL != cb_return ) {
          break;
       }
    }
-   vector_lock( v, FALSE );
 
 cleanup:
+   if( TRUE == ok ) {
+      vector_lock( v, FALSE );
+   }
    return cb_return;
 }
 
 struct VECTOR* vector_iterate_v(
-   struct VECTOR* v, vector_search_cb callback, void* parent, void* arg
+   struct VECTOR* v, vector_iter_cb callback, void* arg
 ) {
    struct VECTOR* found = NULL;
    void* current_iter = NULL;
    void* cb_return = NULL;
    BOOL ok = FALSE;
-   size_t i;
-   struct CONTAINER_IDX idx = { 0 };
+   size_t i = 0;
    int add_err = 0;
-   size_t v_count;
+   size_t v_count = 0;
 
-   scaffold_check_null( v );
-   scaffold_assert( vector_is_valid( v ) );
+   if( NULL == v || !vector_is_valid( v ) || TRUE == v->scalar ) {
+      goto cleanup;
+   }
 
    vector_lock( v, TRUE );
    ok = TRUE;
-
-   idx.type = CONTAINER_IDX_NUMBER;
-
-   if( NULL == parent ) {
-      parent = v;
-   }
 
    /* Linear probing */
    v_count = vector_count( v );
    for( i = 0 ; v_count > i ; i++ ) {
       current_iter = vector_get( v, i );
-      idx.value.index = i;
-      cb_return = callback( &idx, parent, current_iter, arg );
+      cb_return = callback( i, current_iter, arg );
       if( NULL != cb_return ) {
          if( NULL == found ) {
             vector_new( found );
          }
          add_err = vector_add( found, cb_return );
          if( 0 > add_err ) {
-            scaffold_print_debug(
-               &module, "Insufficient space for results vector.\n"
-            );
+            /* TODO: Error. */
             goto cleanup;
          }
       }
@@ -715,16 +704,14 @@ void vector_sort_cb( struct VECTOR* v, vector_sorter_cb callback ) {
    BOOL ok = FALSE;
    size_t v_count;
 
-   scaffold_check_null( v );
-   scaffold_assert( vector_is_valid( v ) );
+   if( NULL == v || !vector_is_valid( v ) || TRUE == v->scalar ) {
+      goto cleanup;
+   }
 
    if( 2 > vector_count( v ) ) {
       /* Not enough to sort! */
       goto cleanup;
    }
-
-   /* TODO: This can work for scalars too, can't it? */
-   scaffold_assert( FALSE == v->scalar );
 
    vector_lock( v, TRUE );
    ok = TRUE;
@@ -752,11 +739,11 @@ cleanup:
    if( FALSE != ok ) {
       vector_lock( v, FALSE );
    }
-   scaffold_assert( 0 == v->lock_count );
+#ifdef DEBUG
+   assert( 0 == v->lock_count );
+#endif /* DEBUG */
    return;
 }
-
-#endif
 
 BOOL vector_is_valid( const struct VECTOR* v ) {
    return NULL != v && VECTOR_SENTINAL == v->sentinal;
