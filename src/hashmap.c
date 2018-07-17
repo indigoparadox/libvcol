@@ -6,6 +6,8 @@
 #define HASHMAP_C
 #include "hashmap.h"
 
+#include <libgoki.h>
+
 #define INITIAL_SIZE (256)
 #define MAX_CHAIN_LENGTH (8)
 #define HASHMAP_SENTINAL 12445
@@ -207,9 +209,10 @@ static int hashmap_hash( struct HASHMAP* m, const bstring key ) {
       i,
       out = HASHMAP_ERROR_FULL;
 
-   if( NULL == m || NULL == key || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_null( key );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    /* If full, return immediately */
    if( m->size >= (m->table_size / 2) ) {
@@ -244,9 +247,9 @@ static void hashmap_verify_size( struct HASHMAP* m ) {
    int size_check = 0,
       i;
 
-   if( !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    for( i = 0 ; i < m->table_size ; i++ ) {
       if( 0 == m->data[i].in_use ) {
@@ -308,9 +311,10 @@ enum HASHMAP_ERROR hashmap_put(
    int iterator_index = 0;
 #endif /* USE_ITERATOR_CACHE */
 
-   if( NULL == m || NULL == key || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_null( key );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    if( TRUE != m->rehashing ) {
       hashmap_lock( m, TRUE );
@@ -375,9 +379,9 @@ void hashmap_rehash( struct HASHMAP* m ) {
    struct HASHMAP_ELEMENT* temp;
    BOOL ok = FALSE;
 
-   if( NULL == m || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    if( TRUE != m->rehashing ) {
       /* Don't touch the rehashing flag below if it was already set. */
@@ -435,9 +439,10 @@ void* hashmap_get( struct HASHMAP* m, const bstring key ) {
    void* element_out = NULL;
    BOOL ok = FALSE;
 
-   if( NULL == m || NULL == key || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_null( key );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    hashmap_lock( m, TRUE );
    ok = TRUE;
@@ -482,9 +487,10 @@ BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    BOOL ok = FALSE;
    BOOL retval = FALSE;
 
-   if( NULL == m || NULL == key || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_null( key );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    // XXX
    //scaffold_check_zero_against_warning(
@@ -532,9 +538,9 @@ void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) 
    size_t i = 0;
    void* test = NULL;
 
-   if( NULL == m || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    // XXX scaffold_check_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during iteration." );
@@ -578,13 +584,15 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
    int verr = 0; /* TODO: Enum. */
 //#endif /* USE_ITERATOR_CACHE */
 
-   if( NULL == m || !hashmap_is_valid( m ) ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
+
    /* XXX scaffold_check_zero_against_warning(
       m->last_error, hashmap_count( m ),
       "Hashmap empty during vector iteration."
    ); */
+
    hashmap_lock( m, TRUE );
    ok = TRUE;
 
@@ -663,12 +671,9 @@ size_t hashmap_remove_cb(
 
    /* FIXME: Delete dynamic arrays and reset when empty. */
 
-   if(
-      NULL == m || !hashmap_is_valid( m ) || 0 >= hashmap_count( m ) ||
-      NULL == m->data
-   ) {
-      goto cleanup;
-   }
+   lgc_null( m );
+   lgc_null( m->data );
+   lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
    // XXX scaffold_check_zero_against_warning(
    // m->last_error, hashmap_count( m ), "Hashmap empty during remove_cb." );
 
