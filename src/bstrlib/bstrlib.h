@@ -301,6 +301,7 @@ struct tagbstring {
 	int mlen;
 	int slen;
 	unsigned char * data;
+	unsigned char * c_str;
 };
 
 /* Accessor macros */

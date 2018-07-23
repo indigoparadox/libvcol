@@ -3,6 +3,9 @@
 #include "mem.h"
 
 #include <stdio.h>
+#ifdef DEBUG
+#include <assert.h>
+#endif /* DEBUG */
 
 #ifndef __palmos__
 #include <stdlib.h>
@@ -42,6 +45,10 @@ cleanup:
 
 void* mem_realloc_internal( void* ptr, size_t count, size_t sz ) {
    void* ptr_out = NULL;
+
+#ifdef DEBUG
+   assert( NULL != ptr );
+#endif /* DEBUG */
 
    if( 0 != mem_check_overflow( count, sz ) ) {
       fprintf( stderr, "Memory error: Overflow detected in reallocation.\n" );
