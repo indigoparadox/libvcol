@@ -248,7 +248,9 @@ static void hashmap_verify_size( struct HASHMAP* m ) {
       i;
 
    lgc_null( m );
+   lgc_silence();
    lgc_null( m->data );
+   lgc_unsilence();
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    for( i = 0 ; i < m->table_size ; i++ ) {
@@ -261,6 +263,7 @@ static void hashmap_verify_size( struct HASHMAP* m ) {
 
    assert( m->size == size_check );
 cleanup:
+   lgc_unsilence(); /* In case lgc_null failed above. */
    return;
 }
 
@@ -325,7 +328,7 @@ enum HASHMAP_ERROR hashmap_put(
    index = hashmap_hash( m, key );
    while( HASHMAP_ERROR_FULL == index ) {
       hashmap_rehash( m );
-      // XXX: scaffold_check_nonzero( scaffold_error );
+      // XXX: lgc_nonzero( scaffold_error );
       index = hashmap_hash( m, key );
    }
 
@@ -413,7 +416,7 @@ void hashmap_rehash( struct HASHMAP* m ) {
 
       /* Never lock when calling recursively! */
       hashmap_put( m, curr[i].key, curr[i].data, TRUE );
-      // XXX: scaffold_check_nonzero( scaffold_error );
+      // XXX: lgc_nonzero( scaffold_error );
    }
 
    mem_free( curr );
@@ -493,7 +496,7 @@ BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
    // XXX
-   //scaffold_check_zero_against_warning(
+   //lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during key search." );
 
    hashmap_lock( m, TRUE );
@@ -542,7 +545,7 @@ void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) 
    lgc_null( m->data );
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
-   // XXX scaffold_check_zero_against_warning(
+   // XXX lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during iteration." );
 
    hashmap_lock( m, TRUE );
@@ -585,10 +588,12 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
 //#endif /* USE_ITERATOR_CACHE */
 
    lgc_null( m );
+   lgc_silence();
    lgc_null( m->data );
+   lgc_unsilence();
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
-   /* XXX scaffold_check_zero_against_warning(
+   /* XXX lgc_zero_against_warning(
       m->last_error, hashmap_count( m ),
       "Hashmap empty during vector iteration."
    ); */
@@ -624,6 +629,7 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
 //#endif /* USE_ITERATOR_CACHE */
 
 cleanup:
+   lgc_unsilence(); /* In case lgc_null failed above. */
 #ifdef DEBUG
    hashmap_verify_size( m );
 #endif /* DEBUG */
@@ -672,9 +678,11 @@ size_t hashmap_remove_cb(
    /* FIXME: Delete dynamic arrays and reset when empty. */
 
    lgc_null( m );
+   lgc_silence();
    lgc_null( m->data );
+   lgc_unsilence();
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
-   // XXX scaffold_check_zero_against_warning(
+   // XXX lgc_zero_against_warning(
    // m->last_error, hashmap_count( m ), "Hashmap empty during remove_cb." );
 
    hashmap_lock( m, TRUE );
@@ -719,6 +727,7 @@ size_t hashmap_remove_cb(
    }
 
 cleanup:
+   lgc_unsilence(); /* In case lgc_null failed above. */
 #ifdef DEBUG
    hashmap_verify_size( m );
 #endif /* DEBUG */
@@ -747,7 +756,7 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
    ) {
       goto cleanup;
    }
-   // XXX scaffold_check_zero_against_warning(
+   // XXX lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during remove." );
 
    hashmap_lock( m, TRUE );

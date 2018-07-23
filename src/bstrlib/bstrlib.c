@@ -142,6 +142,7 @@ int balloc (bstring b, int olen) {
 			}
 		}
 		b->data = x;
+		b->c_str = x;
 		b->mlen = len;
 		b->data[b->slen] = (unsigned char) '\0';
 
