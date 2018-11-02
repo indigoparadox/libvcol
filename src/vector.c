@@ -134,8 +134,9 @@ cleanup:
  * \param[in] index  Index to push the item at. Vector will be extended to
  *                   include this index if it does not already.
  * \param[in] data   Pointer to the item to add.
+ * \return
  */
-int vector_insert( struct VECTOR* v, size_t index, void* data ) {
+size_t vector_insert( struct VECTOR* v, size_t index, void* data ) {
    BOOL ok = FALSE;
    size_t i;
    int err = -1;
