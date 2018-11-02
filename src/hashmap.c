@@ -6,7 +6,7 @@
 #define HASHMAP_C
 #include "hashmap.h"
 
-#include <libgoki.h>
+#include "goki.h"
 
 #define INITIAL_SIZE (256)
 #define MAX_CHAIN_LENGTH (8)
@@ -739,6 +739,7 @@ cleanup:
 
 /**
  * \brief Remove an element with the given key from the given hashmap.
+ * \return TRUE if item removed, FALSE otherwise.
  */
 BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
    size_t i,
