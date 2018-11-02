@@ -43,18 +43,18 @@ void vector_cleanup_force( struct VECTOR* v );
 void vector_cleanup( struct VECTOR* v );
 void vector_free_force( struct VECTOR** v );
 void vector_free( struct VECTOR** v );
-int vector_insert( struct VECTOR* v, size_t index, void* data )
+size_t vector_insert( struct VECTOR* v, size_t index, void* data )
 #ifdef USE_GNUC_EXTENSIONS
 __attribute__ ((warn_unused_result))
 #endif /* USE_GNUC_EXTENSIONS */
 ;
-int vector_add( struct VECTOR* v, void* data )
+size_t vector_add( struct VECTOR* v, void* data )
 #ifdef USE_GNUC_EXTENSIONS
 __attribute__ ((warn_unused_result))
 #endif /* USE_GNUC_EXTENSIONS */
 ;
 void vector_add_scalar( struct VECTOR* v, int32_t value, BOOL allow_dupe );
-void vector_set( struct VECTOR* v, size_t index, void* data, BOOL force );
+size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force );
 void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value );
 void* vector_get( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar( const struct VECTOR* v, size_t index );
