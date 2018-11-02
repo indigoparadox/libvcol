@@ -8,6 +8,20 @@
 
 #include "mem.h"
 
+static BOOL vector_hydrate( struct VECTOR* v ) {
+   BOOL ok = TRUE;
+   if( 0 == v->size ) {
+      v->size = 10;
+      v->data = mem_alloc( v->size, void* );
+      if( NULL == v->data ) {
+         ok = FALSE;
+         goto cleanup;
+      }
+   }
+cleanup:
+   return ok;
+}
+
 void vector_init( struct VECTOR* v ) {
    v->data = NULL;
    v->size = 0;
@@ -72,6 +86,8 @@ static int vector_grow( struct VECTOR* v, size_t new_size ) {
       i;
    void* new_data = NULL;
    int retval = 0;
+
+   vector_hydrate( v );
 
    new_data = mem_realloc( v->data, new_size, void* );
    if( NULL == new_data ) {
@@ -139,13 +155,7 @@ int vector_insert( struct VECTOR* v, size_t index, void* data ) {
       goto cleanup;
    }
 
-   if( 0 == v->size ) {
-      v->size = 10;
-      v->data = mem_alloc( v->size, void* );
-      if( NULL == v->data ) {
-         goto cleanup;
-      }
-   }
+   vector_hydrate( v );
 
    while( v->size <= index || v->count == v->size - 1 ) {
       if( 0 != vector_grow( v, v->size * 2 ) ) {
@@ -180,12 +190,9 @@ int vector_add( struct VECTOR* v, void* data ) {
    vector_lock( v, TRUE );
    ok = TRUE;
 
-   if( 0 == v->size ) {
-      v->size = 10;
-      v->data = mem_alloc( v->size, void* );
-      if( NULL == v->data ) {
-         goto cleanup;
-      }
+   if( !vector_hydrate( v ) ) {
+      err = 1;
+      goto cleanup;
    }
 
    if( v->size == v->count ) {
@@ -273,7 +280,13 @@ cleanup:
    return;
 }
 
-void vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
+/** \brief
+ *
+ * \param
+ * \param
+ * \return New vector size.
+ */
+size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
    size_t new_size = v->size;
 
    if( NULL == v || !vector_is_valid( v ) || FALSE != v->scalar ) {
@@ -282,12 +295,10 @@ void vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
 
    vector_lock( v, TRUE );
 
-   if( 0 == v->size ) {
-      v->size = 10;
-      v->data = (void**)mem_alloc( v->size, void* );
-      if( NULL == v->data ) {
-         goto cleanup;
-      }
+   if( !vector_hydrate( v ) ) {
+      /* TODO: Error indication. */
+      new_size = 0;
+      goto cleanup;
    }
 
    if( FALSE == force ) {
@@ -312,7 +323,7 @@ void vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
 
 cleanup:
    vector_lock( v, FALSE );
-   return;
+   return new_size;
 }
 
 void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value ) {
@@ -570,7 +581,7 @@ void vector_lock( struct VECTOR* v, BOOL lock ) {
    #ifdef USE_THREADS
    #error Locking mechanism undefined!
    #elif defined( DEBUG )
-   if( TRUE == lock ) {
+   if( FALSE != lock ) {
       assert( 0 == v->lock_count );
       v->lock_count++;
    } else {
