@@ -179,7 +179,7 @@ cleanup:
    return err;
 }
 
-int vector_add( struct VECTOR* v, void* data ) {
+size_t vector_add( struct VECTOR* v, void* data ) {
    BOOL ok = FALSE;
    int err = 0;
 
