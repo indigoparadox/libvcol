@@ -6,27 +6,26 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/vcol" prefix_auto="1" extension_auto="1" />
+			<Target title="Debug-Linux">
+				<Option output="../bin/Debug-Linux/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="obj/Debug/" />
+				<Option object_output="../obj/Debug-Linux/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-DDEBUG" />
 				</Compiler>
 			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/vcol" prefix_auto="1" extension_auto="1" />
+			<Target title="Release-Linux">
+				<Option output="../bin/Release-Linux/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="obj/Release/" />
+				<Option object_output="../obj/Release-Linux/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-O2" />
 				</Compiler>
 				<Linker>
@@ -34,22 +33,30 @@
 				</Linker>
 			</Target>
 		</Build>
-		<Unit filename="src/bstrlib/bstrlib.c">
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="bstrlib/bstrlib.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/bstrlib/bstrlib.h" />
-		<Unit filename="src/hashmap.c">
+		<Unit filename="bstrlib/bstrlib.h" />
+		<Unit filename="goki.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/hashmap.h" />
-		<Unit filename="src/mem.c">
+		<Unit filename="goki.h" />
+		<Unit filename="hashmap.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/mem.h" />
-		<Unit filename="src/vector.c">
+		<Unit filename="hashmap.h" />
+		<Unit filename="libvcol.h" />
+		<Unit filename="mem.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/vector.h" />
+		<Unit filename="mem.h" />
+		<Unit filename="vector.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="vector.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
