@@ -17,8 +17,10 @@ struct VECTOR {
    void** data;
    size_t size;
    size_t count;
+#ifdef USE_VECTOR_SCALAR
    BOOL scalar;
    int32_t* scalar_data;
+#endif // USE_VECTOR_SCALAR
    int lock_count;
 };
 
@@ -53,17 +55,21 @@ size_t vector_add( struct VECTOR* v, void* data )
 __attribute__ ((warn_unused_result))
 #endif /* USE_GNUC_EXTENSIONS */
 ;
+
+#ifdef USE_VECTOR_SCALAR
 void vector_add_scalar( struct VECTOR* v, int32_t value, BOOL allow_dupe );
-size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force );
 void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value );
-void* vector_get( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar_value( const struct VECTOR* v, int32_t value );
+void vector_remove_scalar( struct VECTOR* v, size_t index );
+size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value );
+#endif // USE_VECTOR_SCALAR
+
+size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force );
+void* vector_get( const struct VECTOR* v, size_t index );
 size_t vector_remove_cb( struct VECTOR* v, vector_rem_cb callback, void* arg );
 void vector_remove( struct VECTOR* v, size_t index );
 size_t vector_remove_all( struct VECTOR* v );
-void vector_remove_scalar( struct VECTOR* v, size_t index );
-size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value );
 size_t vector_count( const struct VECTOR* v );
 void vector_lock( struct VECTOR* v, BOOL lock );
 void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg );

@@ -16,6 +16,7 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
+					<Add option="-DUSE_VECTOR_SCALAR" />
 				</Compiler>
 			</Target>
 			<Target title="Release-Linux">
