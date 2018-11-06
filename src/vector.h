@@ -17,10 +17,10 @@ struct VECTOR {
    void** data;
    size_t size;
    size_t count;
-#ifdef USE_VECTOR_SCALAR
+//#ifdef USE_VECTOR_SCALAR
    BOOL scalar;
    int32_t* scalar_data;
-#endif // USE_VECTOR_SCALAR
+//#endif // USE_VECTOR_SCALAR
    int lock_count;
 };
 

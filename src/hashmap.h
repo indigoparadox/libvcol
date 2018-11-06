@@ -33,9 +33,9 @@ struct HASHMAP_ELEMENT {
    bstring key;
    BOOL in_use;
    void* data;
-#ifdef USE_ITERATOR_CACHE
+//#ifdef USE_ITERATOR_CACHE
    size_t iterator_index;
-#endif /* USE_ITERATOR_CACHE */
+//#endif /* USE_ITERATOR_CACHE */
 };
 
 /* A hashmap has some maximum size and current size,
@@ -48,9 +48,9 @@ struct HASHMAP {
    uint8_t lock_count;
    enum HASHMAP_ERROR last_error;
    BOOL rehashing;
-#ifdef USE_ITERATOR_CACHE
+//#ifdef USE_ITERATOR_CACHE
    struct VECTOR iterators; /*!< List of hashes stored sequentially.  */
-#endif /* USE_ITERATOR_CACHE */
+//#endif /* USE_ITERATOR_CACHE */
 };
 
 #define hashmap_new( m ) \
