@@ -7,6 +7,7 @@
 #include "vector.h"
 
 #include "mem.h"
+#include "goki.h"
 
 static BOOL vector_hydrate( struct VECTOR* v ) {
    BOOL ok = TRUE;
@@ -29,7 +30,7 @@ void vector_init( struct VECTOR* v ) {
 #ifdef USE_VECTOR_SCALAR
    v->scalar_data = NULL;
 #endif // USE_VECTOR_SCALAR
-   v->sentinal = VECTOR_SENTINAL;
+   v->sentinal = VECTOR_SENTINAL_V1;
    v->lock_count = 0;
 }
 
@@ -656,7 +657,7 @@ void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
       || TRUE == v->scalar
-#endif // USE_VECTOR_SCALAR
+#endif /* USE_VECTOR_SCALAR */
    ) {
       goto cleanup;
    }
@@ -821,5 +822,19 @@ cleanup:
 }
 
 BOOL vector_is_valid( const struct VECTOR* v ) {
-   return NULL != v && VECTOR_SENTINAL == v->sentinal;
+   BOOL valid = FALSE;
+   lgc_null( v );
+   switch( v->sentinal ) {
+   case VECTOR_SENTINAL_NONE:
+      break;
+   case VECTOR_SENTINAL_V1:
+      valid = TRUE;
+      break;
+   }
+cleanup:
+   return valid;
+}
+
+BOOL vector_is_locked( const struct VECTOR* v ) {
+   return v->lock_count > 0;
 }

@@ -291,6 +291,9 @@ void lg_vsnprintf( bstring buffer, const char* message, va_list varg ) {
       case 'c':
          i = va_arg( varg, int );
          bstr_res = bconchar( buffer, i );
+         if( 0 != bstr_res ) {
+            bstr_res = bcatcstr( buffer, "%c" );
+         }
 #ifdef DEBUG
          assert( 0 == bstr_res );
 #endif /* DEBUG */
@@ -305,6 +308,9 @@ void lg_vsnprintf( bstring buffer, const char* message, va_list varg ) {
          bstr_res = bconcat( buffer, insert );
          bdestroy( insert );
          insert = NULL;
+         if( 0 != bstr_res ) {
+            bstr_res = bcatcstr( buffer, "%d" );
+         }
 #ifdef DEBUG
          assert( 0 == bstr_res );
 #endif /* DEBUG */
@@ -313,13 +319,19 @@ void lg_vsnprintf( bstring buffer, const char* message, va_list varg ) {
       case 's':
          insert = bfromcstr( va_arg( varg, char*) );
 #ifdef DEBUG
-         assert( NULL != insert );
+         //assert( NULL != insert );
 #endif /* DEBUG */
          bstr_res = bconcat( buffer, insert );
          bdestroy( insert );
          insert = NULL;
+         if( 0 != bstr_res ) {
+            bstr_res = bcatcstr( buffer, "%s" );
+         }
 #ifdef DEBUG
          assert( 0 == bstr_res );
+#ifdef DEBUG
+         assert( 0 == bstr_res );
+#endif /* DEBUG */
 #endif /* DEBUG */
          break;
 
@@ -328,6 +340,9 @@ void lg_vsnprintf( bstring buffer, const char* message, va_list varg ) {
          /* TODO: (NULL) if null. */
          bstr_res = bconcat( buffer, insert );
          insert = NULL;
+         if( 0 != bstr_res ) {
+            bstr_res = bcatcstr( buffer, "%b" );
+         }
 #ifdef DEBUG
          assert( 0 == bstr_res );
 #endif /* DEBUG */
@@ -342,6 +357,9 @@ void lg_vsnprintf( bstring buffer, const char* message, va_list varg ) {
          bstr_res = bconcat( buffer, insert );
          bdestroy( insert );
          insert = NULL;
+         if( 0 != bstr_res ) {
+            bstr_res = bcatcstr( buffer, "%p" );
+         }
 #ifdef DEBUG
          assert( 0 == bstr_res );
 #endif /* DEBUG */

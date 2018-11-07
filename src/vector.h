@@ -12,19 +12,23 @@ typedef enum _VECTOR_SORT_ORDER {
    VECTOR_SORT_A_HEAVIER = 1
 } VECTOR_SORT_ORDER;
 
+enum VECTOR_SENTINAL {
+   VECTOR_SENTINAL_NONE = 0,
+   VECTOR_SENTINAL_V1 = 1212
+};
+
 struct VECTOR {
-   uint16_t sentinal;
+   enum VECTOR_SENTINAL sentinal;
    void** data;
    size_t size;
    size_t count;
-//#ifdef USE_VECTOR_SCALAR
+/* #ifdef USE_VECTOR_SCALAR */
    BOOL scalar;
    int32_t* scalar_data;
-//#endif // USE_VECTOR_SCALAR
+/* #endif // USE_VECTOR_SCALAR */
    int lock_count;
 };
 
-#define VECTOR_SENTINAL 1212
 #define VECTOR_SIZE_MAX 10000
 
 #define VECTOR_ERR_FULL -1
@@ -63,7 +67,7 @@ int32_t vector_get_scalar( const struct VECTOR* v, size_t index );
 int32_t vector_get_scalar_value( const struct VECTOR* v, int32_t value );
 void vector_remove_scalar( struct VECTOR* v, size_t index );
 size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value );
-#endif // USE_VECTOR_SCALAR
+#endif /* USE_VECTOR_SCALAR */
 
 size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force );
 void* vector_get( const struct VECTOR* v, size_t index );
@@ -82,5 +86,6 @@ struct VECTOR* vector_iterate_v(
 );
 void vector_sort_cb( struct VECTOR* v, vector_sorter_cb );
 BOOL vector_is_valid( const struct VECTOR* v );
+BOOL vector_is_locked( const struct VECTOR* v );
 
 #endif /* VECTOR_H */
