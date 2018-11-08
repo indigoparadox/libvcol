@@ -82,5 +82,6 @@ size_t hashmap_count( const struct HASHMAP* m );
 void hashmap_lock( struct HASHMAP* m, BOOL lock );
 BOOL hashmap_is_valid( const struct HASHMAP* m );
 void* hashmap_get_first( struct HASHMAP* m );
+BOOL hashmap_is_locked( const struct HASHMAP* m );
 
 #endif /* __HASHMAP_H__ */
