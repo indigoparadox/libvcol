@@ -880,3 +880,7 @@ void hashmap_lock( struct HASHMAP* m, BOOL lock ) {
 BOOL hashmap_is_valid( const struct HASHMAP* m ) {
    return NULL != m && HASHMAP_SENTINAL == m->sentinal;
 }
+
+BOOL hashmap_is_locked( const struct HASHMAP* m ) {
+   return m->lock_count > 0;
+}
