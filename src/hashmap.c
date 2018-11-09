@@ -692,10 +692,12 @@ size_t hashmap_remove_cb(
    for( i = 0 ; m->table_size > i ; i++ ) {
       if( 0 != m->data[i].in_use ) {
          data = (void*)(m->data[i].data);
-#ifdef DEBUG
-         assert( NULL != callback );
-#endif /* DEBUG */
-         callback_ret = callback( m->data[i].key, data, arg );
+         if( NULL == callback ) {
+            /* No callback means dump everything. */
+            callback_ret = TRUE;
+         } else {
+            callback_ret = callback( m->data[i].key, data, arg );
+         }
          if( FALSE == callback_ret ) {
             continue;
          }
@@ -864,7 +866,7 @@ void hashmap_lock( struct HASHMAP* m, BOOL lock ) {
    #ifdef USE_THREADS
    #error Locking mechanism undefined!
    #elif defined( DEBUG )
-   if( TRUE == lock ) {
+   if( lock ) {
       assert( 0 == m->lock_count );
       m->lock_count++;
    } else {
