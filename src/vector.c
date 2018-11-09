@@ -564,9 +564,9 @@ size_t vector_remove_cb(
    }
 
 #ifdef DEBUG
-   if( NULL == arg ) {
+   /* if( NULL == arg ) {
       assert( 0 == v->count );
-   }
+   } */
 #endif /* DEBUG */
 
    vector_lock( v, FALSE );
