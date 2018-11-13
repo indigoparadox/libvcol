@@ -12,6 +12,45 @@
 #define MAX_CHAIN_LENGTH (8)
 #define HASHMAP_SENTINAL 12445
 
+
+/* We need to keep keys and values */
+struct HASHMAP_ELEMENT {
+   uint16_t sentinal;
+   bstring key;
+   BOOL in_use;
+   void* data;
+/* #ifdef USE_ITERATOR_CACHE */
+   size_t iterator_index;
+/* #endif */ /* USE_ITERATOR_CACHE */
+};
+
+/* A hashmap has some maximum size and current size,
+ * as well as the data to hold. */
+struct HASHMAP {
+   uint16_t sentinal;
+   int table_size;
+   int size; /* Hashmap sizes can also be - error codes. */
+   struct HASHMAP_ELEMENT* data;
+   uint8_t lock_count;
+   enum HASHMAP_ERROR last_error;
+   BOOL rehashing;
+/* #ifdef USE_ITERATOR_CACHE */
+   struct VECTOR* iterators; /*!< List of hashes stored sequentially.  */
+/* #endif */ /* USE_ITERATOR_CACHE */
+};
+
+struct HASHMAP* hashmap_new() {
+   struct HASHMAP* m = NULL;
+   m = mem_alloc( 1, struct HASHMAP );
+   if( NULL == m ) {
+      /* TODO: Error. */
+      goto cleanup;
+   }
+   hashmap_init( m );
+cleanup:
+   return m;
+}
+
 /*
  * Return an empty hashmap, or NULL on failure.
  */
@@ -616,7 +655,7 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
          test = callback( m->data[i].key, (void*)(m->data[i].data), arg );
          if( NULL != test ) {
             if( NULL == found ) {
-               vector_new( found );
+               found = vector_new();
             }
             verr = vector_add( found, test );
             if( 0 > verr ) {

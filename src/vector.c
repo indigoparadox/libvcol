@@ -9,6 +9,29 @@
 #include "mem.h"
 #include "goki.h"
 
+struct VECTOR {
+   enum VECTOR_SENTINAL sentinal;
+   void** data;
+   size_t size;
+   size_t count;
+/* #ifdef USE_VECTOR_SCALAR */
+   BOOL scalar;
+   int32_t* scalar_data;
+/* #endif // USE_VECTOR_SCALAR */
+   int lock_count;
+};
+
+struct VECTOR* vector_new() {
+   struct VECTOR* v = NULL;
+   v = mem_alloc( 1, struct VECTOR );
+   if( NULL == v ) {
+      goto cleanup;
+   }
+   vector_init( v );
+cleanup:
+   return v;
+}
+
 static BOOL vector_hydrate( struct VECTOR* v ) {
    BOOL ok = TRUE;
    if( 0 == v->size ) {
@@ -681,6 +704,43 @@ cleanup:
    return cb_return;
 }
 
+/** \brief Iterate through the given vector until index max is reached.
+ */
+void* vector_iterate_i(
+   struct VECTOR* v, vector_iter_cb callback, void* arg, size_t max
+) {
+   void* cb_return = NULL,
+      * current_iter = NULL;
+   size_t i = 0;
+   BOOL ok = FALSE;
+
+   if( NULL == v || !vector_is_valid( v )
+#ifdef USE_VECTOR_SCALAR
+      || TRUE == v->scalar
+#endif /* USE_VECTOR_SCALAR */
+      || max > vector_count( v )
+   ) {
+      goto cleanup;
+   }
+
+   vector_lock( v, TRUE );
+   ok = TRUE;
+
+   for( i = 0 ; max > i ; i++ ) {
+      current_iter = vector_get( v, i );
+      cb_return = callback( i, current_iter, arg );
+      if( NULL != cb_return ) {
+         break;
+      }
+   }
+
+cleanup:
+   if( TRUE == ok ) {
+      vector_lock( v, FALSE );
+   }
+   return cb_return;
+}
+
 /** \brief Iterate through the given vector with the given callback in reverse.
  * \param[in] v         The vector through which to iterate.
  * \param[in] callback  The callback to run on each item.
@@ -751,7 +811,7 @@ struct VECTOR* vector_iterate_v(
       cb_return = callback( i, current_iter, arg );
       if( NULL != cb_return ) {
          if( NULL == found ) {
-            vector_new( found );
+            found = vector_new();
          }
          add_err = vector_add( found, cb_return );
          if( 0 > add_err ) {

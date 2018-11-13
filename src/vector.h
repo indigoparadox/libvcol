@@ -6,6 +6,8 @@
 
 #include "mem.h"
 
+struct VECTOR;
+
 typedef enum _VECTOR_SORT_ORDER {
    VECTOR_SORT_A_LIGHTER = -1,
    VECTOR_SORT_A_B_EQUAL = 0,
@@ -17,18 +19,6 @@ enum VECTOR_SENTINAL {
    VECTOR_SENTINAL_V1 = 1212
 };
 
-struct VECTOR {
-   enum VECTOR_SENTINAL sentinal;
-   void** data;
-   size_t size;
-   size_t count;
-/* #ifdef USE_VECTOR_SCALAR */
-   BOOL scalar;
-   int32_t* scalar_data;
-/* #endif // USE_VECTOR_SCALAR */
-   int lock_count;
-};
-
 #define VECTOR_SIZE_MAX 10000
 
 #define VECTOR_ERR_FULL -1
@@ -37,13 +27,7 @@ typedef void* (*vector_iter_cb)( size_t idx, void* iter, void* arg );
 typedef BOOL (*vector_rem_cb)( size_t idx, void* iter, void* arg );
 typedef VECTOR_SORT_ORDER (*vector_sorter_cb)( void* a, void* b );
 
-#define vector_new( v ) \
-   v = mem_alloc( 1, struct VECTOR ); \
-   if( NULL == v ) { \
-      goto cleanup; \
-   } \
-   vector_init( v );
-
+struct VECTOR* vector_new();
 void vector_init( struct VECTOR* v );
 void vector_cleanup_force( struct VECTOR* v );
 void vector_cleanup( struct VECTOR* v );
@@ -77,9 +61,9 @@ size_t vector_remove_all( struct VECTOR* v );
 size_t vector_count( const struct VECTOR* v );
 void vector_lock( struct VECTOR* v, BOOL lock );
 void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg );
-/* void* vector_iterate_nolock(
-   struct VECTOR* v, vector_cb callback, void* parent, void* arg
-); */
+void* vector_iterate_i(
+   struct VECTOR* v, vector_iter_cb callback, void* arg, size_t i
+);
 void* vector_iterate_r( struct VECTOR* v, vector_iter_cb callback, void* arg );
 struct VECTOR* vector_iterate_v(
    struct VECTOR* v, vector_iter_cb callback, void* arg
