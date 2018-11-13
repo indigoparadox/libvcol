@@ -27,40 +27,7 @@ enum HASHMAP_ERROR {
    HASHMAP_ERROR_ITEM_EXISTS = -2
 };
 
-/* We need to keep keys and values */
-struct HASHMAP_ELEMENT {
-   uint16_t sentinal;
-   bstring key;
-   BOOL in_use;
-   void* data;
-/* #ifdef USE_ITERATOR_CACHE */
-   size_t iterator_index;
-/* #endif */ /* USE_ITERATOR_CACHE */
-};
-
-/* A hashmap has some maximum size and current size,
- * as well as the data to hold. */
-struct HASHMAP {
-   uint16_t sentinal;
-   int table_size;
-   int size; /* Hashmap sizes can also be - error codes. */
-   struct HASHMAP_ELEMENT* data;
-   uint8_t lock_count;
-   enum HASHMAP_ERROR last_error;
-   BOOL rehashing;
-/* #ifdef USE_ITERATOR_CACHE */
-   struct VECTOR iterators; /*!< List of hashes stored sequentially.  */
-/* #endif */ /* USE_ITERATOR_CACHE */
-};
-
-#define hashmap_new( m ) \
-   m = mem_alloc( 1, struct HASHMAP ); \
-   if( NULL == m ) { \
-      /* TODO: Error. */ \
-      goto cleanup; \
-   } \
-   hashmap_init( m );
-
+struct HASHMAP* hashmap_new();
 void hashmap_init( struct HASHMAP* m );
 void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg );
 struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, void* arg );
