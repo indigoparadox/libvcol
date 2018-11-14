@@ -640,6 +640,20 @@ cleanup:
    return;
 }
 
+void* vector_pop( struct VECTOR* v ) {
+   size_t v_count = 0;
+   void* out = NULL;
+
+   v_count = vector_count( v );
+   lgc_zero( v_count, "Vector empty; nothing to pop." );
+
+   out = vector_get( v, 0 );
+   vector_remove( v, 0 );
+
+cleanup:
+   return out;
+}
+
 size_t vector_count( const struct VECTOR* v ) {
    if( NULL == v || !vector_is_valid( v ) ) {
       goto cleanup;
@@ -701,6 +715,52 @@ cleanup:
    if( TRUE == ok ) {
       vector_lock( v, FALSE );
    }
+   return cb_return;
+}
+
+
+/** \brief Iterate through the given vector with the given callback guaranteed
+ *         not to modify the vector or its contents.
+ * \param[in] v         The vector through which to iterate read-only.
+ * \param[in] callback  The callback to run on each item read-only.
+ * \param[in] arg       The argument to pass the callback.
+ * \return If one of the callbacks returns an item, the iteration loop will
+ *         break and return this item. Otherwise, NULL will be returned.
+ */
+void* vector_iterate_x(
+   const struct VECTOR* v, vector_iter_x_cb callback, void* arg
+) {
+   void* cb_return = NULL,
+      * current_iter = NULL;
+   size_t i = 0,
+      v_count = 0;
+   BOOL ok = FALSE;
+
+   if( NULL == v || !vector_is_valid( v )
+#ifdef USE_VECTOR_SCALAR
+      || TRUE == v->scalar
+#endif /* USE_VECTOR_SCALAR */
+   ) {
+      goto cleanup;
+   }
+
+   /* The point of this is to prevent deadlocks without locks. */
+   /* vector_lock( v, TRUE );
+   ok = TRUE; */
+
+   v_count = vector_count( v );
+   for( i = 0 ; v_count > i ; i++ ) {
+      current_iter = vector_get( v, i );
+      cb_return = callback( i, current_iter, arg );
+      if( NULL != cb_return ) {
+         break;
+      }
+   }
+
+cleanup:
+   /* if( TRUE == ok ) {
+      vector_lock( v, FALSE );
+   } */
    return cb_return;
 }
 
