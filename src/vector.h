@@ -23,7 +23,11 @@ enum VECTOR_SENTINAL {
 
 #define VECTOR_ERR_FULL -1
 
+#define vector_push( v, item ) \
+   vector_insert( v, 0, item )
+
 typedef void* (*vector_iter_cb)( size_t idx, void* iter, void* arg );
+typedef void* (*vector_iter_x_cb)( size_t idx, const void* iter, void* arg );
 typedef BOOL (*vector_rem_cb)( size_t idx, void* iter, void* arg );
 typedef VECTOR_SORT_ORDER (*vector_sorter_cb)( void* a, void* b );
 
@@ -33,6 +37,7 @@ void vector_cleanup_force( struct VECTOR* v );
 void vector_cleanup( struct VECTOR* v );
 void vector_free_force( struct VECTOR** v );
 void vector_free( struct VECTOR** v );
+void* vector_pop( struct VECTOR* v );
 size_t vector_insert( struct VECTOR* v, size_t index, void* data )
 #ifdef USE_GNUC_EXTENSIONS
 __attribute__ ((warn_unused_result))
@@ -61,6 +66,8 @@ size_t vector_remove_all( struct VECTOR* v );
 size_t vector_count( const struct VECTOR* v );
 void vector_lock( struct VECTOR* v, BOOL lock );
 void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg );
+void* vector_iterate_x(
+   const struct VECTOR* v, vector_iter_x_cb callback, void* arg );
 void* vector_iterate_i(
    struct VECTOR* v, vector_iter_cb callback, void* arg, size_t i
 );
