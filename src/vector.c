@@ -734,7 +734,6 @@ void* vector_iterate_x(
       * current_iter = NULL;
    size_t i = 0,
       v_count = 0;
-   BOOL ok = FALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
