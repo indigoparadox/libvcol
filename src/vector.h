@@ -26,6 +26,12 @@ enum VECTOR_SENTINAL {
 #define vector_push( v, item ) \
    vector_insert( v, 0, item )
 
+#define vector_enqueue( v, item ) \
+   vector_add( v, item )
+
+#define vector_dequeue( v ) \
+   vector_pop( v )
+
 typedef void* (*vector_iter_cb)( size_t idx, void* iter, void* arg );
 typedef void* (*vector_iter_x_cb)( size_t idx, const void* iter, void* arg );
 typedef BOOL (*vector_rem_cb)( size_t idx, void* iter, void* arg );
