@@ -17,7 +17,7 @@
 struct HASHMAP_ELEMENT {
    uint16_t sentinal;
    bstring key;
-   BOOL in_use;
+   VBOOL in_use;
    void* data;
 /* #ifdef USE_ITERATOR_CACHE */
    size_t iterator_index;
@@ -33,7 +33,7 @@ struct HASHMAP {
    struct HASHMAP_ELEMENT* data;
    uint8_t lock_count;
    enum HASHMAP_ERROR last_error;
-   BOOL rehashing;
+   VBOOL rehashing;
 /* #ifdef USE_ITERATOR_CACHE */
    struct VECTOR* iterators; /*!< List of hashes stored sequentially.  */
 /* #endif */ /* USE_ITERATOR_CACHE */
@@ -71,7 +71,7 @@ void hashmap_init( struct HASHMAP* m ) {
    m->sentinal = HASHMAP_SENTINAL;
    m->lock_count = 0;
    m->last_error = HASHMAP_ERROR_NONE;
-   m->rehashing = FALSE;
+   m->rehashing = VFALSE;
 
 #ifdef USE_ITERATOR_CACHE
    /* Initialize the iterator cache. */
@@ -337,17 +337,17 @@ void hashmap_rehash( struct HASHMAP* m );
  * @brief Add a pointer to the hashmap.
  * @param m          Hashmap to modify.
  * @param key        Key for the item to retrieve.
- * @param overwrite  TRUE to overwrite a pointer that already exists, FALSE to
+ * @param overwrite  VTRUE to overwrite a pointer that already exists, VFALSE to
  *                   fail if the pointer already exists.
  * @return  HASHMAP_ERROR_EXISTS if a pointer exists for the given key and
- *          overwrite is FALSE. HASHMAP_ERROR_NONE in all other cases.
+ *          overwrite is VFALSE. HASHMAP_ERROR_NONE in all other cases.
  */
 enum HASHMAP_ERROR hashmap_put(
-   struct HASHMAP* m, const bstring key, void* value, BOOL overwrite
+   struct HASHMAP* m, const bstring key, void* value, VBOOL overwrite
 ) {
    int index;
-   BOOL ok = FALSE;
-   BOOL pre_existing = FALSE;
+   VBOOL ok = VFALSE;
+   VBOOL pre_existing = VFALSE;
    enum HASHMAP_ERROR retval = HASHMAP_ERROR_NONE;
 #ifdef USE_ITERATOR_CACHE
    int iterator_index = 0;
@@ -358,9 +358,9 @@ enum HASHMAP_ERROR hashmap_put(
    lgc_null( key );
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
-   if( TRUE != m->rehashing ) {
-      hashmap_lock( m, TRUE );
-      ok = TRUE;
+   if( VTRUE != m->rehashing ) {
+      hashmap_lock( m, VTRUE );
+      ok = VTRUE;
    }
 
    /* Find a place to put our value */
@@ -379,7 +379,7 @@ enum HASHMAP_ERROR hashmap_put(
       if( overwrite || NULL == m->data[index].data ) {
          /* Destroy the key so it's re-added below. */
          bdestroy( m->data[index].key );
-         pre_existing = TRUE;
+         pre_existing = VTRUE;
       } else {
          retval = HASHMAP_ERROR_ITEM_EXISTS;
          goto cleanup;
@@ -391,7 +391,7 @@ enum HASHMAP_ERROR hashmap_put(
    m->data[index].key = bstrcpy( key );
    bwriteprotect( (*m->data[index].key) );
    m->data[index].in_use = 1;
-   if( TRUE != pre_existing ) {
+   if( VTRUE != pre_existing ) {
       m->size++;
    }
 
@@ -401,8 +401,8 @@ enum HASHMAP_ERROR hashmap_put(
 #endif /* USE_ITERATOR_CACHE */
 
 cleanup:
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
 
 #ifdef DEBUG
@@ -419,16 +419,16 @@ void hashmap_rehash( struct HASHMAP* m ) {
    int old_size;
    struct HASHMAP_ELEMENT* curr;
    struct HASHMAP_ELEMENT* temp;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    lgc_null( m );
    lgc_null( m->data );
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
-   if( TRUE != m->rehashing ) {
+   if( VTRUE != m->rehashing ) {
       /* Don't touch the rehashing flag below if it was already set. */
-      m->rehashing = TRUE;
-      ok = TRUE;
+      m->rehashing = VTRUE;
+      ok = VTRUE;
    }
 
    /* Setup the new elements */
@@ -454,15 +454,15 @@ void hashmap_rehash( struct HASHMAP* m ) {
       }
 
       /* Never lock when calling recursively! */
-      hashmap_put( m, curr[i].key, curr[i].data, TRUE );
+      hashmap_put( m, curr[i].key, curr[i].data, VTRUE );
       // XXX: lgc_nonzero( scaffold_error );
    }
 
    mem_free( curr );
 
 cleanup:
-   if( TRUE == ok ) {
-      m->rehashing = FALSE;
+   if( VTRUE == ok ) {
+      m->rehashing = VFALSE;
    }
 #ifdef DEBUG
    hashmap_verify_size( m );
@@ -479,15 +479,15 @@ void* hashmap_get( struct HASHMAP* m, const bstring key ) {
    int curr;
    int i; /* ? */
    void* element_out = NULL;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    lgc_null( m );
    lgc_null( m->data );
    lgc_null( key );
    lgc_false( hashmap_is_valid( m ), "Hashmap not valid." );
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
    /* Find data location */
    curr = hashmap_hash_int( m, key );
@@ -505,8 +505,8 @@ void* hashmap_get( struct HASHMAP* m, const bstring key ) {
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
    return element_out;
 }
@@ -520,14 +520,14 @@ void* hashmap_get_first( struct HASHMAP* m ) {
 }
 
 /**
- * \brief Return TRUE if the given hashmap has an element stored under the
- *        given key, or FALSE otherwise.
+ * \brief Return VTRUE if the given hashmap has an element stored under the
+ *        given key, or VFALSE otherwise.
  */
-BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
+VBOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    int curr;
    int i;
-   BOOL ok = FALSE;
-   BOOL retval = FALSE;
+   VBOOL ok = VFALSE;
+   VBOOL retval = VFALSE;
 
    lgc_null( m );
    lgc_null( m->data );
@@ -538,8 +538,8 @@ BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    //lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during key search." );
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
    /* Find data location */
    curr = hashmap_hash_int( m, key );
@@ -548,7 +548,7 @@ BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    for( i = 0 ; MAX_CHAIN_LENGTH > i ; i++ ) {
       if( 1 == m->data[curr].in_use ) {
          if( 0 == bstrcmp( m->data[curr].key, key ) ) {
-            retval = TRUE;
+            retval = VTRUE;
             break;
          }
       }
@@ -557,8 +557,8 @@ BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key ) {
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
    return retval;
 }
@@ -576,7 +576,7 @@ cleanup:
  */
 void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) {
    void* found = NULL;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
    size_t i = 0;
    void* test = NULL;
 
@@ -587,8 +587,8 @@ void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) 
    // XXX lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during iteration." );
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
    /* Linear probing */
    for( i = 0; m->table_size > i ; i++ ) {
@@ -602,8 +602,8 @@ void* hashmap_iterate( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) 
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
    return found;
 }
@@ -617,7 +617,7 @@ cleanup:
  */
 struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, void* arg ) {
    struct VECTOR* found = NULL;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 //#ifdef USE_ITERATOR_CACHE
    //struct HASHMAP_VECTOR_ADAPTER adp;
 //#else
@@ -637,8 +637,8 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
       "Hashmap empty during vector iteration."
    ); */
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
 #if 0
 //#ifdef USE_ITERATOR_CACHE
@@ -672,8 +672,8 @@ cleanup:
 #ifdef DEBUG
    hashmap_verify_size( m );
 #endif /* DEBUG */
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
    return found;
 }
@@ -706,8 +706,8 @@ size_t hashmap_remove_cb(
    int i;
    size_t removed = 0;
    void* data;
-   BOOL ok = FALSE;
-   BOOL callback_ret = FALSE;
+   VBOOL ok = VFALSE;
+   VBOOL callback_ret = VFALSE;
 #ifdef USE_ITERATOR_CACHE
    size_t j;
    size_t iterator_index = 0;
@@ -724,8 +724,8 @@ size_t hashmap_remove_cb(
    // XXX lgc_zero_against_warning(
    // m->last_error, hashmap_count( m ), "Hashmap empty during remove_cb." );
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
    /* Linear probing */
    for( i = 0 ; m->table_size > i ; i++ ) {
@@ -733,11 +733,11 @@ size_t hashmap_remove_cb(
          data = (void*)(m->data[i].data);
          if( NULL == callback ) {
             /* No callback means dump everything. */
-            callback_ret = TRUE;
+            callback_ret = VTRUE;
          } else {
             callback_ret = callback( m->data[i].key, data, arg );
          }
-         if( FALSE == callback_ret ) {
+         if( VFALSE == callback_ret ) {
             continue;
          }
 
@@ -753,7 +753,7 @@ size_t hashmap_remove_cb(
 
 #ifdef USE_ITERATOR_CACHE
             /* Tighten up the slack in the iterator order. */
-         vector_lock( &(m->iterators), TRUE );
+         vector_lock( &(m->iterators), VTRUE );
          for(
             j = iterator_index ;
             vector_count( &(m->iterators) ) > j ;
@@ -762,7 +762,7 @@ size_t hashmap_remove_cb(
             e_iterator = ((struct HASHMAP_ELEMENT*)vector_get( &(m->iterators), j ));
             e_iterator->iterator_index--;
          }
-         vector_lock( &(m->iterators), FALSE );
+         vector_lock( &(m->iterators), VFALSE );
 #endif /* USE_ITERATOR_CACHE */
       }
    }
@@ -772,21 +772,21 @@ cleanup:
 #ifdef DEBUG
    hashmap_verify_size( m );
 #endif /* DEBUG */
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
    return removed;
 }
 
 /**
  * \brief Remove an element with the given key from the given hashmap.
- * \return TRUE if item removed, FALSE otherwise.
+ * \return VTRUE if item removed, VFALSE otherwise.
  */
-BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
+VBOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
    size_t i,
       curr;
-   BOOL removed = FALSE;
-   BOOL ok = FALSE;
+   VBOOL removed = VFALSE;
+   VBOOL ok = VFALSE;
 #ifdef USE_ITERATOR_CACHE
    size_t j = 0;
    size_t iterator_index = 0;
@@ -801,8 +801,8 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
    // XXX lgc_zero_against_warning(
    //   m->last_error, hashmap_count( m ), "Hashmap empty during remove." );
 
-   hashmap_lock( m, TRUE );
-   ok = TRUE;
+   hashmap_lock( m, VTRUE );
+   ok = VTRUE;
 
    /* Find key */
    curr = hashmap_hash_int(m, key);
@@ -810,7 +810,7 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
    /* Linear probing, if necessary */
    for( i = 0 ; i < MAX_CHAIN_LENGTH ; i++) {
 
-      if( TRUE == m->data[curr].in_use ) {
+      if( VTRUE == m->data[curr].in_use ) {
          if( 0 == bstrcmp( m->data[curr].key, key ) ) {
 
 #ifdef USE_ITERATOR_CACHE
@@ -822,7 +822,7 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
 
 #ifdef USE_ITERATOR_CACHE
             /* Tighten up the slack in the iterator order. */
-            vector_lock( &(m->iterators), TRUE );
+            vector_lock( &(m->iterators), VTRUE );
             for(
                j = iterator_index ;
                vector_count( &(m->iterators) ) > j ;
@@ -831,7 +831,7 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
                ((struct HASHMAP_ELEMENT*)vector_get( &(m->iterators), j ))
                   ->iterator_index--;
             }
-            vector_lock( &(m->iterators), FALSE );
+            vector_lock( &(m->iterators), VFALSE );
 #endif /* USE_ITERATOR_CACHE */
 
             goto cleanup;
@@ -840,8 +840,8 @@ BOOL hashmap_remove( struct HASHMAP* m, const bstring key ) {
       curr = (curr + 1) % m->table_size;
    }
 cleanup:
-   if( TRUE == ok ) {
-      hashmap_lock( m, FALSE );
+   if( VTRUE == ok ) {
+      hashmap_lock( m, VFALSE );
    }
 #ifdef DEBUG
    hashmap_verify_size( m );
@@ -901,7 +901,7 @@ cleanup:
    return sz_out;
 }
 
-void hashmap_lock( struct HASHMAP* m, BOOL lock ) {
+void hashmap_lock( struct HASHMAP* m, VBOOL lock ) {
    #ifdef USE_THREADS
    #error Locking mechanism undefined!
    #elif defined( DEBUG )
@@ -916,12 +916,12 @@ void hashmap_lock( struct HASHMAP* m, BOOL lock ) {
 }
 
 /**
- * \brief Return TRUE if the hashmap m is valid or FALSE if it is not.
+ * \brief Return VTRUE if the hashmap m is valid or VFALSE if it is not.
  */
-BOOL hashmap_is_valid( const struct HASHMAP* m ) {
+VBOOL hashmap_is_valid( const struct HASHMAP* m ) {
    return NULL != m && HASHMAP_SENTINAL == m->sentinal;
 }
 
-BOOL hashmap_is_locked( const struct HASHMAP* m ) {
+VBOOL hashmap_is_locked( const struct HASHMAP* m ) {
    return m->lock_count > 0;
 }

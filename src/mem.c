@@ -15,7 +15,7 @@
  *         in an overflow, creating a memory buffer with an unexpected size.
  * \param
  * \param
- * \return TRUE if there is an overflow, otherwise FALSE.
+ * \return VTRUE if there is an overflow, otherwise VFALSE.
  */
 static int mem_check_overflow( size_t count, size_t sz ) {
    size_t sz_check = count * sz;

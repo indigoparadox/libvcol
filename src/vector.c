@@ -15,7 +15,7 @@ struct VECTOR {
    size_t size;
    size_t count;
 /* #ifdef USE_VECTOR_SCALAR */
-   BOOL scalar;
+   VBOOL scalar;
    int32_t* scalar_data;
 /* #endif // USE_VECTOR_SCALAR */
    int lock_count;
@@ -32,13 +32,13 @@ cleanup:
    return v;
 }
 
-static BOOL vector_hydrate( struct VECTOR* v ) {
-   BOOL ok = TRUE;
+static VBOOL vector_hydrate( struct VECTOR* v ) {
+   VBOOL ok = VTRUE;
    if( 0 == v->size ) {
       v->size = 10;
       v->data = mem_alloc( v->size, void* );
       if( NULL == v->data ) {
-         ok = FALSE;
+         ok = VFALSE;
          goto cleanup;
       }
    }
@@ -73,7 +73,7 @@ void vector_cleanup( struct VECTOR* v ) {
    }
 
 #ifdef USE_VECTOR_SCALAR
-   if( FALSE != v->scalar ) {
+   if( VFALSE != v->scalar ) {
       mem_free( v->scalar_data );
    } else {
 #endif // USE_VECTOR_SCALAR
@@ -110,7 +110,7 @@ static void vector_reset( struct VECTOR* v ) {
 #ifdef USE_VECTOR_SCALAR
    mem_free( v->scalar_data );
    v->scalar_data = NULL;
-   v->scalar = FALSE;
+   v->scalar = VFALSE;
 #endif // USE_VECTOR_SCALAR
    mem_free( v->data );
    v->data = NULL;
@@ -167,18 +167,18 @@ cleanup:
    return retval;
 }
 
-void vector_add_scalar( struct VECTOR* v, int32_t value, BOOL allow_dupe ) {
+void vector_add_scalar( struct VECTOR* v, int32_t value, VBOOL allow_dupe ) {
    size_t i;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
-   if( NULL == v || !vector_is_valid( v ) || TRUE != v->scalar ) {
+   if( NULL == v || !vector_is_valid( v ) || VTRUE != v->scalar ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
-   v->scalar = TRUE;
+   v->scalar = VTRUE;
 
    if( 0 == v->size || NULL == v->scalar_data ) {
       v->size = 10;
@@ -188,7 +188,7 @@ void vector_add_scalar( struct VECTOR* v, int32_t value, BOOL allow_dupe ) {
       }
    }
 
-   if( FALSE == allow_dupe ) {
+   if( VFALSE == allow_dupe ) {
       for( i = 0 ; NULL != v->scalar_data && v->count > i ; i++ ) {
          if( v->scalar_data[i] == value ) {
 #ifdef DEBUG
@@ -213,21 +213,21 @@ void vector_add_scalar( struct VECTOR* v, int32_t value, BOOL allow_dupe ) {
    v->count++;
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return;
 }
 
 void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value ) {
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
-   if( NULL == v || !vector_is_valid( v ) || TRUE != v->scalar ) {
+   if( NULL == v || !vector_is_valid( v ) || VTRUE != v->scalar ) {
       goto cleanup;
    }
-   ok = TRUE;
+   ok = VTRUE;
 
-   v->scalar = TRUE;
+   v->scalar = VTRUE;
 
    if( 0 == v->size ) {
       v->size = index + 1;
@@ -246,8 +246,8 @@ void vector_set_scalar( struct VECTOR* v, size_t index, int32_t value ) {
    v->scalar_data[index] = value;
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return;
 }
@@ -259,7 +259,7 @@ cleanup:
 int32_t vector_get_scalar( const struct VECTOR* v, size_t index ) {
    int32_t retval = -1;
 
-   if( NULL == v || TRUE != v->scalar ) {
+   if( NULL == v || VTRUE != v->scalar ) {
       goto cleanup;
    }
 
@@ -301,11 +301,11 @@ cleanup:
 void vector_remove_scalar( struct VECTOR* v, size_t index ) {
    size_t i;
 
-   if( NULL == v || !vector_is_valid( v ) || TRUE != v->scalar ) {
+   if( NULL == v || !vector_is_valid( v ) || VTRUE != v->scalar ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
+   vector_lock( v, VTRUE );
 
    if( 1 >= v->count ) {
       /* Delete dynamic arrays and reset if now empty. */
@@ -317,7 +317,7 @@ void vector_remove_scalar( struct VECTOR* v, size_t index ) {
       v->count -= 1;
    }
 
-   vector_lock( v, FALSE );
+   vector_lock( v, VFALSE );
 
 cleanup:
    return;
@@ -327,11 +327,11 @@ size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value ) {
    size_t i;
    size_t difference = 0;
 
-   if( NULL == v || !vector_is_valid( v ) || TRUE != v->scalar ) {
+   if( NULL == v || !vector_is_valid( v ) || VTRUE != v->scalar ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
+   vector_lock( v, VTRUE );
 
    if( 1 >= v->count ) {
       /* Delete dynamic arrays and reset if now empty. */
@@ -346,7 +346,7 @@ size_t vector_remove_scalar_value( struct VECTOR* v, int32_t value ) {
       v->count -= difference;
    }
 
-   vector_lock( v, FALSE );
+   vector_lock( v, VFALSE );
 
 cleanup:
    return difference;
@@ -363,20 +363,20 @@ cleanup:
  * \return
  */
 size_t vector_insert( struct VECTOR* v, size_t index, void* data ) {
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
    size_t i;
    int err = -1;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    if( VECTOR_SIZE_MAX <= index ) {
 #ifdef DEBUG
@@ -402,28 +402,28 @@ size_t vector_insert( struct VECTOR* v, size_t index, void* data ) {
    err = index;
 
 cleanup:
-   if( FALSE != ok ) {
-      vector_lock( v, FALSE );
+   if( VFALSE != ok ) {
+      vector_lock( v, VFALSE );
    }
 
    return err;
 }
 
 size_t vector_add( struct VECTOR* v, void* data ) {
-   BOOL locked = FALSE;
+   VBOOL locked = VFALSE;
    int err = 0;
 
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   locked = TRUE;
+   vector_lock( v, VTRUE );
+   locked = VTRUE;
 
    if( !vector_hydrate( v ) ) {
       err = 1;
@@ -457,7 +457,7 @@ size_t vector_add( struct VECTOR* v, void* data ) {
 
 cleanup:
    if( locked ) {
-      vector_lock( v, FALSE );
+      vector_lock( v, VFALSE );
    }
 
    return err;
@@ -469,18 +469,18 @@ cleanup:
  * \param
  * \return New vector size.
  */
-size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
+size_t vector_set( struct VECTOR* v, size_t index, void* data, VBOOL force ) {
    size_t new_size = v->size;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
+   vector_lock( v, VTRUE );
 
    if( !vector_hydrate( v ) ) {
       /* TODO: Error indication. */
@@ -488,7 +488,7 @@ size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
       goto cleanup;
    }
 
-   if( FALSE == force ) {
+   if( VFALSE == force ) {
       if( index > v->count ) {
          goto cleanup;
       }
@@ -509,7 +509,7 @@ size_t vector_set( struct VECTOR* v, size_t index, void* data, BOOL force ) {
    }
 
 cleanup:
-   vector_lock( v, FALSE );
+   vector_lock( v, VFALSE );
    return new_size;
 }
 
@@ -522,7 +522,7 @@ void* vector_get( const struct VECTOR* v, size_t index ) {
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
@@ -542,25 +542,25 @@ cleanup:
 /**
  * \brief   Use a callback to delete items. The callback frees the item or
  *          decreases its refcount as applicable.
- * \param   dealloc If TRUE, then this function should deallocate each item. If
- *          FALSE, then the callback will have to deallocate the item.
+ * \param   dealloc If VTRUE, then this function should deallocate each item. If
+ *          VFALSE, then the callback will have to deallocate the item.
  */
 size_t vector_remove_cb(
    struct VECTOR* v, vector_rem_cb callback, void* arg
 ) {
    size_t i, j;
    size_t removed = 0;
-   BOOL callback_ret = FALSE;
+   VBOOL callback_ret = VFALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
+   vector_lock( v, VTRUE );
 
    for( i = 0 ; v->count > i ; i++ ) {
 
@@ -592,7 +592,7 @@ size_t vector_remove_cb(
    } */
 #endif /* DEBUG */
 
-   vector_lock( v, FALSE );
+   vector_lock( v, VFALSE );
 
 cleanup:
    return removed;
@@ -604,18 +604,18 @@ size_t vector_remove_all( struct VECTOR* v ) {
 
 void vector_remove( struct VECTOR* v, size_t index ) {
    size_t i;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || FALSE != v->scalar
+      || VFALSE != v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    if( index > v->count ) {
       goto cleanup;
@@ -634,8 +634,8 @@ void vector_remove( struct VECTOR* v, size_t index ) {
    }
 
 cleanup:
-   if( FALSE != ok ) {
-      vector_lock( v, FALSE );
+   if( VFALSE != ok ) {
+      vector_lock( v, VFALSE );
    }
    return;
 }
@@ -663,11 +663,11 @@ cleanup:
    return 0;
 }
 
-void vector_lock( struct VECTOR* v, BOOL lock ) {
+void vector_lock( struct VECTOR* v, VBOOL lock ) {
    #ifdef USE_THREADS
    #error Locking mechanism undefined!
    #elif defined( DEBUG )
-   if( FALSE != lock ) {
+   if( VFALSE != lock ) {
       assert( 0 == v->lock_count );
       v->lock_count++;
    } else {
@@ -689,18 +689,18 @@ void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
       * current_iter = NULL;
    size_t i = 0,
       v_count = 0;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif /* USE_VECTOR_SCALAR */
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    v_count = vector_count( v );
    for( i = 0 ; v_count > i ; i++ ) {
@@ -712,8 +712,8 @@ void* vector_iterate( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return cb_return;
 }
@@ -737,15 +737,15 @@ void* vector_iterate_x(
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif /* USE_VECTOR_SCALAR */
    ) {
       goto cleanup;
    }
 
    /* The point of this is to prevent deadlocks without locks. */
-   /* vector_lock( v, TRUE );
-   ok = TRUE; */
+   /* vector_lock( v, VTRUE );
+   ok = VTRUE; */
 
    v_count = vector_count( v );
    for( i = 0 ; v_count > i ; i++ ) {
@@ -757,8 +757,8 @@ void* vector_iterate_x(
    }
 
 cleanup:
-   /* if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   /* if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    } */
    return cb_return;
 }
@@ -771,19 +771,19 @@ void* vector_iterate_i(
    void* cb_return = NULL,
       * current_iter = NULL;
    size_t i = 0;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif /* USE_VECTOR_SCALAR */
       || max > vector_count( v )
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    for( i = 0 ; max > i ; i++ ) {
       current_iter = vector_get( v, i );
@@ -794,8 +794,8 @@ void* vector_iterate_i(
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return cb_return;
 }
@@ -812,18 +812,18 @@ void* vector_iterate_r( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
    void* current_iter = NULL;
    size_t i = 0,
       v_count = 0;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    v_count = vector_count( v );
    for( i = v_count ; 0 < i ; i-- ) {
@@ -835,8 +835,8 @@ void* vector_iterate_r( struct VECTOR* v, vector_iter_cb callback, void* arg ) {
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return cb_return;
 }
@@ -847,21 +847,21 @@ struct VECTOR* vector_iterate_v(
    struct VECTOR* found = NULL;
    void* current_iter = NULL;
    void* cb_return = NULL;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
    size_t i = 0;
    int add_err = 0;
    size_t v_count = 0;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    /* Linear probing */
    v_count = vector_count( v );
@@ -881,8 +881,8 @@ struct VECTOR* vector_iterate_v(
    }
 
 cleanup:
-   if( TRUE == ok ) {
-      vector_lock( v, FALSE );
+   if( VTRUE == ok ) {
+      vector_lock( v, VFALSE );
    }
    return found;
 }
@@ -892,12 +892,12 @@ void vector_sort_cb( struct VECTOR* v, vector_sorter_cb callback ) {
    void* current_iter = NULL;
    size_t i;
    VECTOR_SORT_ORDER o;
-   BOOL ok = FALSE;
+   VBOOL ok = VFALSE;
    size_t v_count;
 
    if( NULL == v || !vector_is_valid( v )
 #ifdef USE_VECTOR_SCALAR
-      || TRUE == v->scalar
+      || VTRUE == v->scalar
 #endif // USE_VECTOR_SCALAR
    ) {
       goto cleanup;
@@ -908,8 +908,8 @@ void vector_sort_cb( struct VECTOR* v, vector_sorter_cb callback ) {
       goto cleanup;
    }
 
-   vector_lock( v, TRUE );
-   ok = TRUE;
+   vector_lock( v, VTRUE );
+   ok = VTRUE;
 
    v_count = vector_count( v );
    for( i = 1 ; v_count > i ; i++ ) {
@@ -931,8 +931,8 @@ void vector_sort_cb( struct VECTOR* v, vector_sorter_cb callback ) {
    }
 
 cleanup:
-   if( FALSE != ok ) {
-      vector_lock( v, FALSE );
+   if( VFALSE != ok ) {
+      vector_lock( v, VFALSE );
    }
 #ifdef DEBUG
    assert( 0 == v->lock_count );
@@ -940,20 +940,20 @@ cleanup:
    return;
 }
 
-BOOL vector_is_valid( const struct VECTOR* v ) {
-   BOOL valid = FALSE;
+VBOOL vector_is_valid( const struct VECTOR* v ) {
+   VBOOL valid = VFALSE;
    lgc_null( v );
    switch( v->sentinal ) {
    case VECTOR_SENTINAL_NONE:
       break;
    case VECTOR_SENTINAL_V1:
-      valid = TRUE;
+      valid = VTRUE;
       break;
    }
 cleanup:
    return valid;
 }
 
-BOOL vector_is_locked( const struct VECTOR* v ) {
+VBOOL vector_is_locked( const struct VECTOR* v ) {
    return v->lock_count > 0;
 }
