@@ -58,6 +58,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mem.h" />
+		<Unit filename="vbool.h" />
 		<Unit filename="vector.c">
 			<Option compilerVar="CC" />
 		</Unit>

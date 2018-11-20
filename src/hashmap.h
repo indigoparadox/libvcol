@@ -19,7 +19,7 @@
 struct HASHMAP;
 
 typedef void* (*hashmap_iter_cb)( const bstring idx, void* iter, void* arg );
-typedef BOOL (*hashmap_rem_cb)( const bstring idx, void* iter, void* arg );
+typedef VBOOL (*hashmap_rem_cb)( const bstring idx, void* iter, void* arg );
 
 enum HASHMAP_ERROR {
    HASHMAP_ERROR_NONE,
@@ -34,21 +34,21 @@ struct VECTOR* hashmap_iterate_v( struct HASHMAP* m, hashmap_iter_cb callback, v
 size_t hashmap_remove_cb(
    struct HASHMAP* m, hashmap_rem_cb callback, void* arg );
 enum HASHMAP_ERROR hashmap_put(
-   struct HASHMAP* m, const bstring key, void* value, BOOL overwrite )
+   struct HASHMAP* m, const bstring key, void* value, VBOOL overwrite )
 #ifdef USE_GNUC_EXTENSIONS
 __attribute__ ((warn_unused_result))
 #endif /* USE_GNUC_EXTENSIONS */
 ;
 void* hashmap_get( struct HASHMAP* m, const bstring key );
-BOOL hashmap_contains_key( struct HASHMAP* m, const bstring key );
-BOOL hashmap_remove( struct HASHMAP* m, const bstring key );
+VBOOL hashmap_contains_key( struct HASHMAP* m, const bstring key );
+VBOOL hashmap_remove( struct HASHMAP* m, const bstring key );
 size_t hashmap_remove_all( struct HASHMAP* m );
 void hashmap_cleanup( struct HASHMAP* m );
 void hashmap_free( struct HASHMAP** m );
 size_t hashmap_count( const struct HASHMAP* m );
-void hashmap_lock( struct HASHMAP* m, BOOL lock );
-BOOL hashmap_is_valid( const struct HASHMAP* m );
+void hashmap_lock( struct HASHMAP* m, VBOOL lock );
+VBOOL hashmap_is_valid( const struct HASHMAP* m );
 void* hashmap_get_first( struct HASHMAP* m );
-BOOL hashmap_is_locked( const struct HASHMAP* m );
+VBOOL hashmap_is_locked( const struct HASHMAP* m );
 
 #endif /* __HASHMAP_H__ */

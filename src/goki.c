@@ -28,7 +28,7 @@ struct LG_TRACE_CAT {
 };
 
 static bstring lg_buffer = NULL;
-static struct LG_TRACE_CAT lg_categories[LG_CAT_MAX] = { 0 };
+static struct LG_TRACE_CAT lg_categories[LG_CAT_MAX] = { { 0 } };
 static lg_info_callback lg_info_cb = NULL;
 static int lg_trace_cat_index = -1;
 
