@@ -20,7 +20,9 @@ extern "C" {
 #ifndef __palmos__
 #include <string.h>
 #include <ctype.h>
+#ifdef DEBUG
 #include <assert.h>
+#endif /* DEBUG */
 #endif /* __palmos__ */
 #include <stdarg.h>
 #include <limits.h>
