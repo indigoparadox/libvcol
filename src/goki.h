@@ -3,8 +3,9 @@
 #define GOKIBURI_H
 
 #include <stdio.h>
+#include <stdbool.h>
+
 #include "bstrlib/bstrlib.h"
-#include "vbool.h"
 
 typedef void (*lg_info_callback)(bstring);
 
@@ -37,12 +38,12 @@ enum LGC_ERROR {
    LGC_ERROR_UNEQUAL
 };
 
-#define lgc_silence() lgc_error_silent = VTRUE;
-#define lgc_unsilence() lgc_error_silent = VFALSE;
+#define lgc_silence() lgc_error_silent = true;
+#define lgc_unsilence() lgc_error_silent = false;
 
 #define lgc_false( condition, msg ) \
     if( !condition ) { \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "False on line: %d: %s\n", __LINE__, msg ); \
         } \
@@ -52,7 +53,7 @@ enum LGC_ERROR {
 #define lgc_null_msg( pointer, message ) \
     if( NULL == pointer ) { \
         lgc_error = LGC_ERROR_NULLPO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, \
                "Null pointer on line: %d: %s\n", \
@@ -66,7 +67,7 @@ enum LGC_ERROR {
 #define lgc_null_warning( pointer ) \
     if( NULL == pointer ) { \
         lgc_error = LGC_ERROR_NULLPO; \
-        if( VTRUE != scaffold_warning_silent ) { \
+        if( true != scaffold_warning_silent ) { \
             lg_warning( \
                __FILE__, "Null pointer on line: %d\n", __LINE__ ); \
         } \
@@ -78,7 +79,7 @@ enum LGC_ERROR {
 #define lgc_null( pointer ) \
     if( NULL == pointer ) { \
         lgc_error = LGC_ERROR_NULLPO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "Null pointer on line: %d\n", __LINE__ ); \
         } \
@@ -90,7 +91,7 @@ enum LGC_ERROR {
 #define lgc_null_continue( pointer ) \
     if( NULL == pointer ) { \
         lgc_error = LGC_ERROR_NULLPO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "Null pointer on line: %d\n", __LINE__ ); \
             lg_debug( __FILE__, "Continuing loop..." ); \
@@ -103,7 +104,7 @@ enum LGC_ERROR {
 #define lgc_not_null( pointer ) \
     if( NULL != pointer ) { \
         lgc_error = LGC_ERROR_NOT_NULLPO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, \
                "Non-null pointer on line: %d\n", __LINE__ ); \
@@ -116,7 +117,7 @@ enum LGC_ERROR {
 #define lgc_bounds( index, bound ) \
     if( index >= bound ) { \
         lgc_error = LGC_ERROR_OUTOFBOUNDS; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "Out of bounds on line: %d\n", __LINE__ ); \
         } \
@@ -128,7 +129,7 @@ enum LGC_ERROR {
 #define lgc_negative( value ) \
     if( 0 > value ) { \
         lgc_error = LGC_ERROR_NEGATIVE; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "Bad negative on line: %d\n", __LINE__ ); \
         } \
@@ -140,7 +141,7 @@ enum LGC_ERROR {
 #define lgc_nonzero( value ) \
     if( 0 != value ) { \
         lgc_error = LGC_ERROR_NONZERO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, "Nonzero error on line: %d\n", __LINE__ ); \
         } \
@@ -152,7 +153,7 @@ enum LGC_ERROR {
 #define lgc_zero_msg( value, message ) \
     if( 0 == value ) { \
         lgc_error = LGC_ERROR_ZERO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, \
                "Zero error on line: %d: %s\n", __LINE__, message ); \
@@ -166,7 +167,7 @@ enum LGC_ERROR {
 #define lgc_zero_against_warning( last, value, msg ) \
     if( 0 == value && LGC_ERROR_ZERO != last ) { \
         last = LGC_ERROR_ZERO; \
-        if( VTRUE != scaffold_warning_silent ) { \
+        if( true != scaffold_warning_silent ) { \
             lg_warning( \
                __FILE__, \
                "Zero warning on line: %d: %s\n", __LINE__, msg ); \
@@ -179,7 +180,7 @@ enum LGC_ERROR {
 #define lgc_zero_against( last, value, msg ) \
     if( 0 == value && LGC_ERROR_ZERO != last ) { \
         last = LGC_ERROR_ZERO; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__, \
                "Zero error on line: %d: %s\n", __LINE__, msg ); \
@@ -192,7 +193,7 @@ enum LGC_ERROR {
 #define lgc_equal( value1, value2 ) \
     if( value1 != value2 ) { \
         lgc_error = LGC_ERROR_UNEQUAL; \
-        if( VTRUE != lgc_error_silent ) { \
+        if( true != lgc_error_silent ) { \
             lg_error( \
                __FILE__,\
                "Values not equal: %d and %d: error on line: %d\n", \
@@ -224,10 +225,10 @@ void lg_colorize( bstring str, enum LG_COLOR color );
 
 #ifdef GOKIBURI_C
 enum LGC_ERROR lgc_error = LGC_ERROR_NONE;
-enum VBOOL lgc_error_silent = VFALSE;
+bool lgc_error_silent = false;
 #else
 extern enum LGC_ERROR lgc_error;
-extern enum VBOOL lgc_error_silent;
+extern bool lgc_error_silent;
 #endif /* GOKIBURI_C */
 
 #ifdef USE_LOG_FILE

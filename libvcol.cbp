@@ -96,7 +96,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/mem.h" />
-		<Unit filename="src/vbool.h" />
 		<Unit filename="src/vector.c">
 			<Option compilerVar="CC" />
 		</Unit>
