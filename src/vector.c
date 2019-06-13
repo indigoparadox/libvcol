@@ -35,6 +35,7 @@ cleanup:
 static bool vector_hydrate( struct VECTOR* v ) {
    bool ok = true;
    if( 0 == v->size ) {
+      assert( NULL == v->data );
       v->size = 10;
       v->data = mem_alloc( v->size, void* );
       if( NULL == v->data ) {
