@@ -7,9 +7,9 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug-Linux">
-				<Option output="../bin/Debug-Linux/vcol" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug-Linux/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="../obj/Debug-Linux/" />
+				<Option object_output="obj/Debug-Linux/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -20,9 +20,9 @@
 				</Compiler>
 			</Target>
 			<Target title="Debug-Linux-Mini">
-				<Option output="../bin/Debug-Linux-Mini/vcol" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug-Linux-Mini/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="../obj/Debug-Linux-Mini/" />
+				<Option object_output="obj/Debug-Linux-Mini/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -34,9 +34,9 @@
 				</Compiler>
 			</Target>
 			<Target title="Release-Linux">
-				<Option output="../bin/Release-Linux/vcol" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release-Linux/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="../obj/Release-Linux/" />
+				<Option object_output="obj/Release-Linux/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -48,9 +48,9 @@
 				</Linker>
 			</Target>
 			<Target title="Release-Linux-Mini">
-				<Option output="../bin/Release-Linux-Mini/vcol" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release-Linux-Mini/vcol" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="../obj/Release-Linux-Mini/" />
+				<Option object_output="obj/Release-Linux-Mini/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -65,42 +65,42 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="bstrglue.c">
+		<Unit filename="src/bstrglue.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="bstrglue.h" />
-		<Unit filename="bstrlib/bstrlib.c">
+		<Unit filename="src/bstrglue.h" />
+		<Unit filename="src/bstrlib/bstrlib.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="bstrlib/bstrlib.h" />
-		<Unit filename="goki.c">
-			<Option compilerVar="CC" />
-			<Option target="Debug-Linux" />
-			<Option target="Release-Linux" />
-		</Unit>
-		<Unit filename="goki.h">
-			<Option target="Debug-Linux" />
-			<Option target="Release-Linux" />
-		</Unit>
-		<Unit filename="hashmap.c">
+		<Unit filename="src/bstrlib/bstrlib.h" />
+		<Unit filename="src/goki.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug-Linux" />
 			<Option target="Release-Linux" />
 		</Unit>
-		<Unit filename="hashmap.h">
+		<Unit filename="src/goki.h">
 			<Option target="Debug-Linux" />
 			<Option target="Release-Linux" />
 		</Unit>
-		<Unit filename="libvcol.h" />
-		<Unit filename="mem.c">
+		<Unit filename="src/hashmap.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug-Linux" />
+			<Option target="Release-Linux" />
+		</Unit>
+		<Unit filename="src/hashmap.h">
+			<Option target="Debug-Linux" />
+			<Option target="Release-Linux" />
+		</Unit>
+		<Unit filename="src/libvcol.h" />
+		<Unit filename="src/mem.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="mem.h" />
-		<Unit filename="vbool.h" />
-		<Unit filename="vector.c">
+		<Unit filename="src/mem.h" />
+		<Unit filename="src/vbool.h" />
+		<Unit filename="src/vector.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="vector.h" />
+		<Unit filename="src/vector.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
