@@ -3,3 +3,6 @@ obj
 libvcol.depend
 libvcol.layout
 doxygen
+Makefile
+CMakeFiles
+cmake_install.cmake
